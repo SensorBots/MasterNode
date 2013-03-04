@@ -1,7 +1,7 @@
 /**
  * 
  */
-package guiVersion_5;
+package src.guiVersion_5;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

@@ -1,4 +1,4 @@
-package guiVersion_5;
+package src.guiVersion_5;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;

@@ -1,4 +1,4 @@
-package guiVersion_5;
+package src.guiVersion_5;
 
 public class Package {
 
