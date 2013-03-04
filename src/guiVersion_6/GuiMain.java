@@ -26,6 +26,8 @@ import javax.swing.JTextField;
 public class GuiMain extends JFrame implements ActionListener /*, FocusListener*/{
 
 	private static final long serialVersionUID = 2918932934632365316L;
+	
+	/*HEAGASLFJKABDFLABFALDFADF*/
 
 	SerialPortManager serialPortManager = null;
 	KeyManager keyManager = null;
