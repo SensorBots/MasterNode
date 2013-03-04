@@ -1,0 +1,220 @@
+package guiVersion_0;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+public class NetworkProtocol {
+	
+	//passed from main GUI
+	GuiMain window = null;
+	
+	private final static int MAX_NUM_PARAMS 	= 10;
+	private final static int MasterNodeId 		= 0;	// '0'
+	private final static int NULL 				= -1;
+	private final static int timePerInterval 	= 4;
+	private final static int SELF_NETWORK_DATA 	= 1;
+	private final static int SELF_N_CHILD_DATA 	= 2;
+	
+	public static boolean successPcktRxd 			= false;
+	public static boolean myChildrenSntDataSuccess 	= false;
+	
+	public static int numNodes 			= 3;
+	public static int myTimeSlotCounter = 0;
+	public static int myTimeSlotMax 	= 2*(numNodes*numNodes);
+
+	public static int myBotId 			= 0;	// '0'
+	public static int myParent 			= 0;	// '1'	
+	public static int myHasChild		= 0;	// '0'
+	public static int myHasSeenLeaf		= 0;	// '0'
+	public static int mySndFstTime		= 0;	// '1'
+	
+	public static int packetBotId 		= 0;
+	public static int packetParent 		= 0;
+	public static int packetTimeSlot 	= 0;
+	
+	GregorianCalendar gcalendar = new GregorianCalendar();
+	private static int hrs = 0;
+	private static int min = 0;
+	private static int sec = 0;
+
+	public static int[] msgToChildren = new int[MAX_NUM_PARAMS]; //{botID, parent, hasChild, hasSenLef, sendFirst, hrs, min, sec};
+	
+	public NetworkProtocol(GuiMain window){
+		this.window = window;
+	}
+	
+	/*public void protocolCore(){
+		if (successPcktRxd == true) { //myBotId == MasterNodeId || <- not necessary in master
+			
+			parsePacket();
+			
+			while (myTimeSlotCounter < myTimeSlotMax || myParent == NULL) {
+				
+				while ((sec % timePerInterval) != 0) { 
+					//do nothing
+				}
+				
+				if (myTimeSlotCounter % numNodes != myBotId || myParent == NULL) {
+					
+					if (successPcktRxd == true) {
+						//parsePacket();
+						successPcktRxd = false;
+						
+						if (myParent == NULL) {
+							myParent = packetBotId;
+						}  else if (myBotId != packetParent) {//else if (isBotInMyChildrenList(packetBotId) == false) {
+							//putBotInMyChildrenList(packetBotId);
+							//setRxdFromChildren(packetBotId);
+						}
+						myTimeSlotCounter = packetTimeSlot;
+					}
+				} else {
+					if (myParent != NULL) {
+						//getMyData();
+						broadCast(SELF_NETWORK_DATA);
+					}
+					
+					if (mySndFstTime == -1) {
+						mySndFstTime = myTimeSlotCounter;
+					}
+				}
+				
+				if (myTimeSlotCounter == (mySndFstTime + numNodes) && myHasChild == 0) {
+					myHasSeenLeaf = 1;
+				}
+				
+				if (myHasSeenLeaf == 1 || myChildrenSntDataSuccess == true && 
+						(myTimeSlotCounter % numNodes) == myBotId) {
+					//getMyData();
+					broadCast(SELF_N_CHILD_DATA);
+				} else if (successPcktRxd == true) {
+					//parsePacket();
+					//storeSdCard();
+					successPcktRxd = false;
+					
+					if (rxdFromAllChildrenTest() == true) {
+						myChildrenSntDataSuccess = true;
+					}
+				}
+				myTimeSlotCounter++;
+			}
+		}
+	}*/
+	
+	public void getTime(){
+		//GregorianCalendar gcalendar = new GregorianCalendar();
+		hrs = gcalendar.get(Calendar.HOUR_OF_DAY);
+		min = gcalendar.get(Calendar.MINUTE);
+		sec = gcalendar.get(Calendar.SECOND);
+		window.logAreaText.append("Time: " +hrs+ ":" +min+ ":" + sec + "\n");
+	}
+    
+    private void itoa(int value, char s[])
+    {
+    	int i = s.length; // MAX_NUM_DIGITS = 2
+
+    	do {
+    		s[--i] = (char) (value % 10 + '0');
+
+    	} while ( (value /= 10) > 0);
+    	
+    	//window.logAreaText.append("char s: " +String.valueOf(s)+ " numDigs: " +s.length+ "\n");
+    }
+    
+    private char[] itoa(int value, int length)
+    {
+    	int i = length; // MAX_NUM_DIGITS = 2
+    	char s[] = new char[length];
+
+    	do {
+    		s[--i] = (char) (value % 10 + '0');
+
+    	} while ( (value /= 10) > 0);
+    	
+    	//window.logAreaText.append("char s: " +String.valueOf(s)+ " numDigs: " +s.length+ "\n");
+    	return s;
+    }
+    
+    
+	public void createDataPacket(){
+		getTime();
+		
+		char[] tHrs = {'0', '0'}; //Initializes the array so that it always includes a zero in case of one-digit values
+		char[] tMin = {'0', '0'}; //new char[2]; //itoa(min);
+		char[] tSec = {'0', '0'}; //new char[2]; //itoa(sec);
+		char[] tmp = {'0'};
+		char[] tmp2 = {'0', '0'};
+		
+		
+		itoa(hrs, tHrs);
+		itoa(min, tMin);
+		itoa(sec, tSec);		
+		
+		tmp = itoa(myBotId, 1);
+		msgToChildren[0] = tmp[0];
+		
+		tmp = itoa(myParent, 1);
+		msgToChildren[1] = tmp[0];
+		
+		tmp2 = itoa(myTimeSlotCounter, 2);
+		msgToChildren[2] = tmp2[0];
+		msgToChildren[3] = tmp2[1];
+		
+		msgToChildren[4] = tHrs[0];
+		msgToChildren[5] = tHrs[1]; 
+		msgToChildren[6] = tMin[0];
+		msgToChildren[7] = tMin[1];
+		msgToChildren[8] = tSec[0];
+		msgToChildren[9] = tSec[1];
+	}
+	
+	public void createDataPacket(int botID, int parent, int timeSlot){
+		getTime();
+		
+		char[] tHrs = {'0', '0'}; //Initializes the array so that it always includes a zero in case of one-digit values
+		char[] tMin = {'0', '0'}; //new char[2]; //itoa(min);
+		char[] tSec = {'0', '0'}; //new char[2]; //itoa(sec);
+		char[] tmp  = {'0'};
+		char[] tmp2 = {'0', '0'};//, '\0'};
+		
+		itoa(timeSlot, tmp2);
+
+		itoa(hrs, tHrs);
+		itoa(min, tMin);
+		itoa(sec, tSec);		
+		
+		tmp = itoa(botID, 1);
+		msgToChildren[0] = tmp[0];
+		
+		tmp = itoa(parent, 1);
+		msgToChildren[1] = tmp[0];
+		
+		msgToChildren[2] = tmp2[0];
+		msgToChildren[3] = tmp2[1];
+		
+		msgToChildren[4] = tHrs[0];
+		msgToChildren[5] = tHrs[1]; 
+		msgToChildren[6] = tMin[0];
+		msgToChildren[7] = tMin[1];
+		msgToChildren[8] = tSec[0];
+		msgToChildren[9] = tSec[1];
+	}
+	
+	/*public void genPacket(){
+		getTime();
+		createDataPacket();
+	}
+	
+	public void genPacket(int botID, int parent, int hasChild, int hasSenLef, int sendFirst){
+		getTime();
+		createDataPacket(botID, parent, hasChild, hasSenLef, sendFirst);
+	}*/
+
+	public int getMaxNumParams() {
+		return MAX_NUM_PARAMS;
+	}
+
+	public int[] getMsgToChildren() {
+		return msgToChildren;
+	}
+}
